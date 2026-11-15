@@ -486,6 +486,8 @@
   function syncPlayerButtonsVisibility(settings) {
     const playerMp4 = document.getElementById('yt-tools-player-mp4');
     if (playerMp4) playerMp4.hidden = settings.btnDownloadMp4 === false;
+    const playerMp3 = document.getElementById('yt-tools-player-mp3');
+    if (playerMp3) playerMp3.hidden = settings.btnDownloadMp3 === false;
     const playerTranscript = $id('yt-tools-player-transcript');
     if (playerTranscript) playerTranscript.hidden = settings.btnTranscript === false;
     const root = $e('.containerButtons');

@@ -1,8 +1,9 @@
   // Keep the download UI inside the player so it remains visible in fullscreen.
   (() => {
-    let panel;
     let button;
+    let audioButton;
     let transcriptButton;
+    const panels = { mp4: null, mp3: null };
     let panelVideoId = paramsVideoURL();
     const element = (tag, className, text) => {
       const node = document.createElement(tag);
@@ -12,18 +13,20 @@
     };
 
     function closePanel() {
-      if (panel) panel.hidden = true;
+      for (const panel of Object.values(panels)) if (panel) panel.hidden = true;
       if (button) button.setAttribute('aria-expanded', 'false');
+      if (audioButton) audioButton.setAttribute('aria-expanded', 'false');
     }
 
-    function createPanel(player) {
-      panel = element('section', 'yt-tools-player-download');
-      panel.id = 'yt-tools-player-download';
+    function createPanel(player, format) {
+      const panel = element('section', 'yt-tools-player-download');
+      panel.id = format === 'mp4' ? 'yt-tools-player-download' : 'yt-tools-player-audio-download';
+      panels[format] = panel;
       panel.setAttribute('role', 'dialog');
-      panel.setAttribute('aria-label', 'Download video');
+      panel.setAttribute('aria-label', format === 'mp4' ? 'Download video' : 'Download audio');
       panel.hidden = true;
       const header = element('div', 'yt-tools-player-download-header');
-      header.appendChild(element('strong', '', 'Download MP4'));
+      header.appendChild(element('strong', '', `Download ${format.toUpperCase()}`));
       const close = element('button', 'yt-tools-player-close', '×');
       close.type = 'button';
       close.setAttribute('aria-label', 'Close download panel');
@@ -31,9 +34,9 @@
       header.appendChild(close);
       panel.appendChild(header);
       const box = element('div', 'download-container yt-tools-player-download-box');
-      box.dataset.type = 'video';
+      box.dataset.type = format === 'mp4' ? 'video' : 'audio';
       box.hidden = true;
-      const text = element('span', 'download-text', 'Download video');
+      const text = element('span', 'download-text', format === 'mp4' ? 'Download video' : 'Download audio');
       const quality = element('span', 'download-quality');
       const download = element('button', 'download-btn', 'Download');
       download.type = 'button';
@@ -62,9 +65,31 @@
         event.stopPropagation();
       });
       panel.addEventListener('keydown', event => {
-        if (event.key === 'Escape') { closePanel(); button?.focus(); event.stopPropagation(); }
+        if (event.key === 'Escape') { closePanel(); (format === 'mp4' ? button : audioButton)?.focus(); event.stopPropagation(); }
       });
       player.appendChild(panel);
+      return panel;
+    }
+
+    function toggleDownload(player, format) {
+      const trigger = format === 'mp4' ? button : audioButton;
+      let panel = panels[format];
+      if (!panel || panel.parentElement !== player) panel = createPanel(player, format);
+      const willOpen = panel.hidden;
+      closePanel();
+      if (!willOpen) return;
+      panel.hidden = false;
+      trigger.setAttribute('aria-expanded', 'true');
+      const box = panel.querySelector('.download-container');
+      if (box.dataset.started) return;
+      const configured = readJsonGM('ytSettingsMDCM', {}).defaultMp4Quality;
+      const quality = format === 'mp3' ? 'mp3' :
+        (['144', '240', '360', '480', '720', '1080'].includes(configured) ? configured : '720');
+      box.dataset.started = 'true';
+      box.dataset.quality = quality;
+      box.hidden = false;
+      box.querySelector('.download-quality').textContent = format === 'mp3' ? ' MP3' : ` ${quality}p MP4`;
+      startDownloadVideoOrAudio(quality, box);
     }
 
     function ensurePlayerButton() {
@@ -82,26 +107,27 @@
         button.setAttribute('aria-controls', 'yt-tools-player-download');
         button.addEventListener('click', event => {
           event.preventDefault(); event.stopPropagation();
-          if (!panel || panel.parentElement !== player) createPanel(player);
-          panel.hidden = !panel.hidden;
-          button.setAttribute('aria-expanded', String(!panel.hidden));
-          if (!panel.hidden) {
-            const box = panel.querySelector('.download-container');
-            if (!box.dataset.started) {
-              const configured = readJsonGM('ytSettingsMDCM', {}).defaultMp4Quality;
-              const quality = ['144', '240', '360', '480', '720', '1080'].includes(configured) ? configured : '720';
-              box.dataset.started = 'true';
-              box.dataset.quality = quality;
-              box.hidden = false;
-              box.querySelector('.download-quality').textContent = ` ${quality}p MP4`;
-              startDownloadVideoOrAudio(quality, box);
-            }
-          }
+          toggleDownload(player, 'mp4');
         });
         play.insertAdjacentElement('afterend', button);
       }
       const settings = readJsonGM('ytSettingsMDCM', {});
       button.hidden = settings.btnDownloadMp4 === false;
+      if (audioButton?.parentElement !== controls) {
+        audioButton = element('button', 'ytp-button yt-tools-player-mp3', 'MP3');
+        audioButton.id = 'yt-tools-player-mp3';
+        audioButton.type = 'button';
+        audioButton.title = 'Download audio (MP3)';
+        audioButton.setAttribute('aria-label', 'Download audio (MP3)');
+        audioButton.setAttribute('aria-expanded', 'false');
+        audioButton.setAttribute('aria-controls', 'yt-tools-player-audio-download');
+        audioButton.addEventListener('click', event => {
+          event.preventDefault(); event.stopPropagation();
+          toggleDownload(player, 'mp3');
+        });
+        button.insertAdjacentElement('afterend', audioButton);
+      }
+      audioButton.hidden = settings.btnDownloadMp3 === false;
       if (transcriptButton?.parentElement !== controls) {
         transcriptButton = element('button', 'ytp-button yt-tools-player-transcript', 'Transcript ↓');
         transcriptButton.type = 'button';
@@ -129,7 +155,7 @@
             setTimeout(() => status.remove(), 6000);
           }
         });
-        button.insertAdjacentElement('afterend', transcriptButton);
+        audioButton.insertAdjacentElement('afterend', transcriptButton);
       }
       transcriptButton.hidden = settings.btnTranscript === false;
     }
@@ -138,7 +164,7 @@
     const observer = new MutationObserver(() => {
       if (scheduled) return;
       const controls = document.querySelector('#movie_player .ytp-left-controls');
-      if (controls && button?.parentElement === controls && transcriptButton?.parentElement === controls) return;
+      if (controls && button?.parentElement === controls && audioButton?.parentElement === controls && transcriptButton?.parentElement === controls) return;
       scheduled = true;
       requestAnimationFrame(() => { scheduled = false; ensurePlayerButton(); });
     });
@@ -147,7 +173,10 @@
     document.addEventListener('yt-navigate-finish', () => {
       const currentVideoId = paramsVideoURL();
       if (currentVideoId !== panelVideoId) {
-        if (panel) { resetDownloadState(panel.querySelector('.download-container')); panel.remove(); panel = null; }
+        for (const format of ['mp4', 'mp3']) {
+          const panel = panels[format];
+          if (panel) { resetDownloadState(panel.querySelector('.download-container')); panel.remove(); panels[format] = null; }
+        }
         panelVideoId = currentVideoId;
       }
       ensurePlayerButton();

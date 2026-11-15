@@ -3,6 +3,7 @@
 ## Local downloads and player controls
 
 - Added an MP4 button beside the play button, including in full screen, with a configurable default MP4 resolution and immediate download.
+- Added a one-click MP3 audio download button beside the play button, including in full screen.
 - Added a transcript button beside the play button that immediately downloads Markdown, plus a configurable default transcript language. The transcript panel can also download Markdown.
 - Added a local Windows download service using yt-dlp rather than the unavailable upstream download providers. Videos and audio go to Windows Downloads; MP4s attempt to include the YouTube thumbnail as cover art.
 - Reset download status when navigating between videos and prevent an earlier download from overwriting a new video's status.

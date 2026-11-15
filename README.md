@@ -17,6 +17,7 @@ The Tampermonkey entry is named **YouTube Tools - Local Development** for compat
 ## Use
 
 - Open a YouTube video and click **MP4** beside the play button. The download starts immediately and its status appears in the player, including in full screen. The initial default is 720p.
+- Click **MP3** beside the play button to download the video's audio as an MP3, including in full screen.
 - Click **Transcript ↓** beside the play button to save a Markdown (`.md`) transcript with the video title, link and timestamps. In the YouTube Tools settings panel (gear icon), choose **Default transcript language**. If the requested language isn't available, the script attempts a YouTube translation when available; otherwise it reports an error.
 - In the same settings panel, choose **Default MP4 download resolution**. The downloader chooses an available stream at or below that resolution. The MP4 download attempts to embed the YouTube thumbnail as cover art; Windows File Explorer may choose a different preview frame.
 - Video and audio downloads are saved to your Windows Downloads folder. Transcript files use the browser's configured download location. The local service handles one video or audio download at a time.

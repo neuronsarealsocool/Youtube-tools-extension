@@ -26,7 +26,9 @@ The player controls can be enabled or disabled with the corresponding YouTube To
 
 ## Start and update later
 
-Start **Start YouTube Tools.cmd** each time you want local video or audio downloads, and leave its window open. To start it automatically in the background when you sign in to Windows, double-click **Enable YouTube Tools Startup.cmd** after completing setup. To turn that off, double-click **Disable YouTube Tools Startup.cmd**. This applies only to your Windows account. If you move the project folder, enable startup again from its new location. The transcript button does not need the local service once the userscript is installed.
+Start **Start YouTube Tools.cmd** each time you want local video or audio downloads, and leave its window open. To start it automatically in the background when you sign in to Windows, double-click **Enable YouTube Tools Startup.cmd** after completing setup. To turn that off, double-click **Disable YouTube Tools Startup.cmd**. The sign-in task restarts the service if it exits unexpectedly and applies only to your Windows account. If you move the project folder, disable startup from the old folder and enable it from the new one.
+
+To add a desktop shortcut, run **Create YouTube Tools Desktop Shortcut.cmd**. The shortcut starts the local service if necessary and opens YouTube. The transcript button does not need the local service once the userscript is installed.
 
 To update, download and extract the newer project version, start its launcher, visit [http://127.0.0.1:8766/](http://127.0.0.1:8766/) and choose **Install or update**. Alternatively, with YouTube open, use the Tampermonkey menu **YouTube Tools: install or update**. Accept the update and refresh YouTube. Don't run two copies of the local service at the same time.
 

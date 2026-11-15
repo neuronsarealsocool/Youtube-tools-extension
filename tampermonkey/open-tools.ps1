@@ -24,7 +24,7 @@ try {
             Start-Process -FilePath $powerShell -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-File', ('"' + $background + '"')) -WindowStyle Hidden
         }
         for ($i = 0; $i -lt 60 -and -not (Test-LocalService); $i++) { Start-Sleep -Seconds 1 }
-        if (-not (Test-LocalService)) { throw 'The service did not start. Check .local\dev\startup.log or run Start YouTube Tools.cmd for details.' }
+        if (-not (Test-LocalService)) { throw 'The service did not start. Check .local\dev\startup.log and startup-error.log or run Start YouTube Tools.cmd for details.' }
     }
     Start-Process 'https://www.youtube.com/'
 } catch {

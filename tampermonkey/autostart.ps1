@@ -6,15 +6,21 @@ $background = Join-Path $PSScriptRoot 'start-background.ps1'
 $powershell = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
 $arguments = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "{0}"' -f $background
 $legacyCommand = '"{0}" {1}' -f $powershell, $arguments
+$hiddenLauncher = Join-Path $PSScriptRoot 'start-hidden.vbs'
+$wscript = Join-Path $env:SystemRoot 'System32\wscript.exe'
+$hiddenArguments = '//B //Nologo "{0}" "{1}"' -f $hiddenLauncher, $background
 $existing = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
-if ($existing -and ($existing.Actions.Count -ne 1 -or $existing.Actions[0].Arguments -ne $arguments -or $existing.Actions[0].Execute -ne $powershell)) {
+$isLegacy = $existing -and $existing.Actions.Count -eq 1 -and $existing.Actions[0].Arguments -eq $arguments -and $existing.Actions[0].Execute -eq $powershell
+$isHidden = $existing -and $existing.Actions.Count -eq 1 -and $existing.Actions[0].Arguments -eq $hiddenArguments -and $existing.Actions[0].Execute -eq $wscript
+if ($existing -and -not ($isLegacy -or $isHidden)) {
     throw 'The startup task belongs to a different YouTube Tools folder. Disable it from that folder first.'
 }
 
 if ($Action -eq 'Enable') {
     if (-not (Test-Path -LiteralPath $background)) { throw 'The background launcher is missing.' }
+    if (-not (Test-Path -LiteralPath $hiddenLauncher)) { throw 'The hidden launcher is missing.' }
     $account = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
-    $taskAction = New-ScheduledTaskAction -Execute $powershell -Argument $arguments
+    $taskAction = New-ScheduledTaskAction -Execute $wscript -Argument $hiddenArguments
     $trigger = New-ScheduledTaskTrigger -AtLogOn -User $account
     $trigger.Delay = 'PT30S'
     $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Seconds 0) -MultipleInstances IgnoreNew -RestartCount 999 -RestartInterval (New-TimeSpan -Minutes 1)

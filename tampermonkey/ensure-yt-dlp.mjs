@@ -3,8 +3,8 @@ import { mkdir, readFile, rename, unlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 // Official Windows release; update the version and checksum together.
-const VERSION = '2026.10.26';
-const SHA256 = 'f5389d3698ecde4ef06f4e6b1ce0294fe9ac1396228c8990b8d3416d6d177a7d';
+const VERSION = '2026.11.23';
+const SHA256 = '622ed48023cac1daa52a3bf3a6ac38f03514de214b5f0fa069389fd0f6d17e5c';
 const URL = `https://github.com/yt-dlp/yt-dlp/releases/download/${VERSION}/yt-dlp.exe`;
 const digest = data => createHash('sha256').update(data).digest('hex');
 

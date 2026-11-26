@@ -119,7 +119,7 @@ const server = createServer((request, response) => {
       const id = randomUUID();
       const job = { state: 'running', message: 'Downloading to your Downloads folder…' };
       jobs.set(id, job);
-      const args = ['--ignore-config', '--no-playlist', '--no-overwrites', '--js-runtimes', `node:${process.execPath}`, '--ffmpeg-location', ffmpegDir, '--newline', '--print', 'after_move:YT_TOOLS_FILE:%(filepath)s', '-P', downloads, '-o', '%(title).150B [%(id)s].%(ext)s'];
+      const args = ['--ignore-config', '--no-playlist', '--no-overwrites', '--encoding', 'utf-8', '--js-runtimes', `node:${process.execPath}`, '--ffmpeg-location', ffmpegDir, '--newline', '--print', 'after_move:YT_TOOLS_FILE:%(filepath)s', '-P', downloads, '-o', '%(title).150B [%(id)s].%(ext)s'];
       if (audio.includes(input.format)) {
         args.push('-x', '--audio-format', input.format === 'webm' ? 'best' : input.format);
       } else {
@@ -146,7 +146,10 @@ const server = createServer((request, response) => {
         const file = output.match(/YT_TOOLS_FILE:([^\r\n]+)/)?.[1]?.trim();
         const complete = code === 0 && file && existsSync(file);
         job.state = complete ? 'complete' : 'error';
-        job.message = complete ? `Saved to ${file}` : (lastError.trim().split('\n').at(-1) || 'The downloader did not produce a file.');
+        const errorLine = lastError.split(/\r?\n/).reverse().find(line => /^ERROR:/.test(line.trim()));
+        job.message = complete ? `Saved to ${file}` : code === 0
+          ? 'The download finished, but the output file could not be verified. Check your Downloads folder.'
+          : (errorLine?.trim() || `The downloader failed (exit code ${code}).`);
       });
       response.writeHead(202).end(JSON.stringify({ id }));
     });

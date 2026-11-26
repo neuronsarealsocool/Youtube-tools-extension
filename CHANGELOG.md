@@ -2,6 +2,7 @@
 
 ## Local downloads and player controls
 
+- Updated yt-dlp to resolve a YouTube challenge failure and fixed false failure messages for filenames containing non-ASCII characters.
 - Added an MP4 button beside the play button, including in full screen, with a configurable default MP4 resolution and immediate download.
 - Added a one-click MP3 audio download button beside the play button, including in full screen.
 - Added a transcript button beside the play button that immediately downloads Markdown, plus a configurable default transcript language. The transcript panel can also download Markdown.
